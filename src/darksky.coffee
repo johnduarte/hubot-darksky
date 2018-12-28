@@ -29,18 +29,18 @@ module.exports = (robot) ->
     unless options.separator
       options.separator = "\n"
 
-    googleurl = "http://maps.googleapis.com/maps/api/geocode/json"
-    q = sensor: false, address: location
-    msg.http(googleurl)
-      .query(q)
+    osmurl = "https://nominatim.openstreetmap.org/search"
+    qu = format: "json", limit: "1", q: location
+    msg.http(osmurl)
+      .query(qu)
       .get() (err, res, body) ->
         result = JSON.parse(body)
 
-        if result.results.length > 0
-          lat = result.results[0].geometry.location.lat
-          lng = result.results[0].geometry.location.lng
+        if result.length > 0
+          lat = result[0].lat
+          lng = result[0].lon
           darkSkyMe msg, lat,lng , options.separator, (darkSkyText) ->
-            response = "Weather for #{result.results[0].formatted_address} (Powered by DarkSky https://darksky.net/poweredby/)#{options.separator}#{darkSkyText}"
+            response = "Weather for #{result[0].display_name} (Powered by DarkSky https://darksky.net/poweredby/)#{options.separator}#{darkSkyText}"
               .replace /-?(\d+\.?\d*)°C/g, (match) ->
                 centigrade = match.replace /°C/, ''
                 match = Math.round(centigrade*10)/10 + '°C/' + Math.round(centigrade * (9/5) + parseInt(32, 10)) + '°F'
